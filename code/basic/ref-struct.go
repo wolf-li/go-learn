@@ -48,4 +48,6 @@ func main() {
 
 	refSetUser(&u1)
 	fmt.Println(u1)
+
+	
 }

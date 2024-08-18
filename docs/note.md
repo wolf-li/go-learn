@@ -2133,6 +2133,148 @@ name: Name type: string json: Name value: x
 
 修改结构体中的某些值
 ```go
+type Student struct {
+  Name1 string `big:"-"`
+  Name2 string
+}
+
+func main() {
+  s := Student{
+    Name1: "fengfeng",
+    Name2: "zhangsan",
+  }
+  t := reflect.TypeOf(s)
+  v := reflect.ValueOf(&s).Elem()
+
+  for i := 0; i < t.NumField(); i++ {
+    field := t.Field(i)
+    bigField := field.Tag.Get("big")
+    // 判断类型是不是字符串
+    if field.Type.Kind() != reflect.String {
+      continue
+    }
+    if bigField == "" {
+      continue
+    }
+    // 修改值
+    valueFiled := v.Field(i)
+    valueFiled.SetString("xx")
+  }
+  fmt.Println(s)
+}
+```
+
+调用结构体中方法
+```go
+type Student struct{
+	Name string
+	Age int
+}
+
+func (Student) See(name string){
+	fmt.Println("see name:",name)
+}
+
+func main() {
+	s := Student{
+		Name: "小智",
+		Age: 21,
+	}
+
+	t := reflect.TypeOf(s)
+	v := reflect.ValueOf(s)
+
+	for i := 0; i < t.NumMethod(); i++ {
+		methodType := t.Method(i)
+		fmt.Printf("name: %s, type: %s\n",methodType.Name, methodType.Type)
+		methodValue := v.Method(i)
+		methodValue.Call([]reflect.Value{
+			reflect.ValueOf("lala"),
+		})
+	}
+}
+```
+
+orm 小案例
+```go
 
 ```
 
+## 网络编程
+### TCP
+server
+```go
+func main() {
+	tcpAddr, _ := net.ResolveTCPAddr("tcp","127.0.0.1:8000")
+	listern, _ := net.ListenTCP("tcp", tcpAddr)
+	for {
+		conn, err := listern.AcceptTCP()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		// 获取客户端地址
+		fmt.Println(conn.RemoteAddr().String()," connect")
+		for {
+			var buf []byte = make([]byte, 1024)
+			n, err := conn.Read(buf)
+			if err == io.EOF{
+				fmt.Println(conn.RemoteAddr().String()," disconnect")
+				break
+			}
+			fmt.Println(string(buf[0:n]))
+		}
+	}
+}
+```
+client
+```go
+func main() {
+	conn, _ := net.DialTCP("tcp", nil,
+		&net.TCPAddr{
+			IP : net.ParseIP("127.0.0.1"),
+			Port: 8000,
+		})	
+	defer conn.Close()
+	var a string
+	for {
+		fmt.Scanln(&a)
+		if a == "q" {
+			break
+		}
+		conn.Write([]byte(a))
+	}
+}
+```
+
+### http
+server 
+```go
+import (
+	"fmt"
+	"net/http"
+)
+
+func Index(write http.ResponseWriter, request *http.Request){
+	fmt.Println(request.URL.Path)
+	write.Write([]byte("hello"))
+}
+
+func main() {
+	http.HandleFunc("/index", Index)
+	fmt.Println("web address: http://127.0.0.1:8000")
+	http.ListenAndServe("127.0.0.1:8000",nil)
+}
+```
+client
+```go
+	response, err := http.Get("http://127.0.0.1:8000/index")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	byteData, _ := io.ReadAll(response.Body)
+	fmt.Println(string(byteData))
+```
+
+## 交叉编译
