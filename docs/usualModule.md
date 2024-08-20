@@ -26,6 +26,73 @@ flag 包实现了命令行参数的解析，开发 cli（command line interface�
 ## strconv 模块
 strconv包实现了基本数据类型与其字符串表示的转换，主要有以下常用函数： Atoi()、Itoa()、parse系列、format系列、append系列。
 
+## context 模块
+context 在 1.7 中引入
+规范
+conntext 接口
+```go
+type Context interface{
+    Deadline()(deadline time.Time, ok bool)
+    Done() <-chan struct{}
+    Err() error
+    Value(key any)any
+}
+```
+context 用处
+取消 channl
+超时 deadline
+上下文值 value
+
+数据传递
+```go
+func GetUser(ctx context.Context){
+	fmt.Println(ctx.Value("name"))
+}
+
+func main() {
+	ctx := context.Background() // root context 
+	ctx = context.WithValue(ctx, "name", "lala")
+	GetUser(ctx)
+}
+```
+
+通过 type 定义不同类型获取传递值
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+)
+
+const RequestID = "requestID"
+
+func main() {
+	ctx := context.Background()
+	SendContext(ctx)
+}
+
+type CtxSendKey string
+
+func SendContext(ctx context.Context) {
+	key := CtxSendKey(RequestID)
+	ctx = context.WithValue(ctx, key, "123")
+	ReciverContext(ctx)
+}
+
+type CtxReciverKey string
+
+func ReciverContext(ctx context.Context) {
+	key := CtxReciverKey(RequestID)
+	ctx = context.WithValue(ctx, key, "3434")
+	LoggerContext(ctx)
+}
+
+func LoggerContext(ctx context.Context) {
+	fmt.Println("Send", CtxSendKey(RequestID), ctx.Value(CtxSendKey(RequestID)))
+	fmt.Println("Receiver", CtxReciverKey(RequestID), ctx.Value(CtxReciverKey(RequestID)))
+}
+```
 
 
 ---

@@ -2278,3 +2278,25 @@ client
 ```
 
 ## 交叉编译
+Mac 下编译 Linux 和 Windows 64位可执行程序
+```bash
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+    CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+```
+Linux 下编译 Mac 和 Windows 64位可执行程序
+```bash
+    CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
+    CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+```
+Windows 下编译 Mac 和 Linux 64位可执行程序
+```bat
+SET CGO_ENABLED=0
+SET GOOS=darwin
+SET GOARCH=amd64
+go build
+
+SET CGO_ENABLED=0
+SET GOOS=linux
+SET GOARCH=amd64
+go build
+```
